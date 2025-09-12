@@ -26,6 +26,7 @@
     background:#00132b;
     border-radius:8px;
     display:block;
+    touch-action:none; /* prevent scrolling */
   }
 
   /* Dashboard controls */
@@ -33,8 +34,9 @@
     display:flex;
     justify-content:center;
     align-items:center;
-    gap:12px;
-    padding:10px;
+    gap:14px;
+    padding:20px;
+    margin-bottom:40px;  /* lifted above bottom */
     flex-wrap:wrap;
   }
   #dashboard button {
@@ -56,6 +58,7 @@
     #dashboard button {
       width:60px; height:60px; font-size:18px;
     }
+    #dashboard {margin-bottom:25px;}
   }
 </style>
 </head>
@@ -108,6 +111,30 @@ function shoot(){
   bullets.push({x:player.x+player.w/2-2,y:player.y,w:4,h:10});
 }
 
+// Swipe gesture support
+let startX=null;
+canvas.addEventListener("touchstart",(e)=>{
+  if(e.touches.length===1){
+    startX=e.touches[0].clientX;
+  }
+});
+canvas.addEventListener("touchmove",(e)=>{
+  if(startX!==null){
+    let dx=e.touches[0].clientX-startX;
+    if(dx>20){moveRight=true; moveLeft=false;}
+    else if(dx<-20){moveLeft=true; moveRight=false;}
+  }
+});
+canvas.addEventListener("touchend",(e)=>{
+  moveLeft=false; moveRight=false;
+  // if it was just a tap (no big move) => shoot
+  if(startX!==null){
+    let dx=(e.changedTouches[0].clientX-startX);
+    if(Math.abs(dx)<10) shoot();
+    startX=null;
+  }
+});
+
 // Spawn enemies
 function spawnComet(){
   comets.push({x:Math.random()*(canvas.width-30),y:0,w:30,h:30});
@@ -143,7 +170,7 @@ function loop(){
     if(c.y>canvas.height) comets.splice(i,1);
     // collision
     bullets.forEach((b,bi)=>{
-      if(b.x<b.x+b.w && b.x+c.w>c.x && b.y<b.y+b.h && b.y+c.h>c.y){
+      if(b.x<c.x+c.w && b.x+b.w>c.x && b.y<c.y+c.h && b.y+b.h>c.y){
         bullets.splice(bi,1);
         comets.splice(i,1);
         score++;
