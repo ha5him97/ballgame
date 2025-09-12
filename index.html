@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Space Shooter</title>
+<style>
+  body {
+    margin:0;
+    font-family:sans-serif;
+    background:#0a0a1a;
+    color:#fff;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    height:100vh;
+    overflow:hidden;
+  }
+
+  h1 {margin:10px 0; font-size:22px;}
+
+  canvas {
+    flex:1;
+    width:100%;
+    max-width:600px;
+    background:#00132b;
+    border-radius:8px;
+    display:block;
+  }
+
+  /* Dashboard controls */
+  #dashboard {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:12px;
+    padding:10px;
+    flex-wrap:wrap;
+  }
+  #dashboard button {
+    width:70px;
+    height:70px;
+    font-size:20px;
+    font-weight:bold;
+    border:none;
+    border-radius:50%;
+    background:rgba(255,255,255,0.1);
+    color:white;
+    backdrop-filter:blur(8px);
+    transition:transform 0.1s;
+  }
+  #dashboard button:active {transform:scale(0.9);}
+
+  @media (max-width:600px){
+    h1{font-size:16px;}
+    #dashboard button {
+      width:60px; height:60px; font-size:18px;
+    }
+  }
+</style>
+</head>
+<body>
+  <h1>🚀 Space Shooter</h1>
+  <canvas id="game"></canvas>
+
+  <!-- Dashboard -->
+  <div id="dashboard">
+    <button id="left">⬅️</button>
+    <button id="shoot">🔥</button>
+    <button id="right">➡️</button>
+  </div>
+
+<script>
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+resizeCanvas();
+window.addEventListener("resize",resizeCanvas);
+
+function resizeCanvas(){
+  canvas.width=window.innerWidth>600?600:window.innerWidth-20;
+  canvas.height=window.innerHeight*0.65;
+}
+
+// Player
+let player={x:canvas.width/2-20,y:canvas.height-40,w:40,h:20};
+
+// Bullets & enemies
+let bullets=[];
+let comets=[];
+let score=0;
+
+// Controls
+let moveLeft=false, moveRight=false;
+document.getElementById("left").ontouchstart=()=>moveLeft=true;
+document.getElementById("left").ontouchend=()=>moveLeft=false;
+document.getElementById("right").ontouchstart=()=>moveRight=true;
+document.getElementById("right").ontouchend=()=>moveRight=false;
+document.getElementById("shoot").ontouchstart=shoot;
+
+document.getElementById("left").onmousedown=()=>moveLeft=true;
+document.getElementById("left").onmouseup=()=>moveLeft=false;
+document.getElementById("right").onmousedown=()=>moveRight=true;
+document.getElementById("right").onmouseup=()=>moveRight=false;
+document.getElementById("shoot").onclick=shoot;
+
+// Shooting
+function shoot(){
+  bullets.push({x:player.x+player.w/2-2,y:player.y,w:4,h:10});
+}
+
+// Spawn enemies
+function spawnComet(){
+  comets.push({x:Math.random()*(canvas.width-30),y:0,w:30,h:30});
+}
+setInterval(spawnComet,1200);
+
+// Game loop
+function loop(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // Move player
+  if(moveLeft) player.x-=4;
+  if(moveRight) player.x+=4;
+  player.x=Math.max(0,Math.min(canvas.width-player.w,player.x));
+
+  // Draw player
+  ctx.fillStyle="lime";
+  ctx.fillRect(player.x,player.y,player.w,player.h);
+
+  // Bullets
+  ctx.fillStyle="yellow";
+  bullets.forEach((b,i)=>{
+    b.y-=6;
+    ctx.fillRect(b.x,b.y,b.w,b.h);
+    if(b.y<0) bullets.splice(i,1);
+  });
+
+  // Comets
+  ctx.fillStyle="red";
+  comets.forEach((c,i)=>{
+    c.y+=2;
+    ctx.fillRect(c.x,c.y,c.w,c.h);
+    if(c.y>canvas.height) comets.splice(i,1);
+    // collision
+    bullets.forEach((b,bi)=>{
+      if(b.x<b.x+b.w && b.x+c.w>c.x && b.y<b.y+b.h && b.y+c.h>c.y){
+        bullets.splice(bi,1);
+        comets.splice(i,1);
+        score++;
+      }
+    });
+  });
+
+  // Score
+  ctx.fillStyle="white";
+  ctx.font="16px Arial";
+  ctx.fillText("Score: "+score,10,20);
+
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
