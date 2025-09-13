@@ -26,7 +26,7 @@
     background:#00132b;
     border-radius:8px;
     display:block;
-    touch-action:none; /* prevent scrolling */
+    touch-action:none; /* prevent scrolling on mobile */
   }
 
   /* Dashboard controls */
@@ -50,6 +50,7 @@
     color:white;
     backdrop-filter:blur(8px);
     transition:transform 0.1s;
+    cursor:pointer;
   }
   #dashboard button:active {transform:scale(0.9);}
 
@@ -94,6 +95,8 @@ let score=0;
 
 // Controls
 let moveLeft=false, moveRight=false;
+
+// Dashboard controls
 document.getElementById("left").ontouchstart=()=>moveLeft=true;
 document.getElementById("left").ontouchend=()=>moveLeft=false;
 document.getElementById("right").ontouchstart=()=>moveRight=true;
@@ -105,6 +108,17 @@ document.getElementById("left").onmouseup=()=>moveLeft=false;
 document.getElementById("right").onmousedown=()=>moveRight=true;
 document.getElementById("right").onmouseup=()=>moveRight=false;
 document.getElementById("shoot").onclick=shoot;
+
+// Keyboard controls
+document.addEventListener("keydown",(e)=>{
+  if(e.code==="ArrowLeft"||e.code==="KeyA") moveLeft=true;
+  if(e.code==="ArrowRight"||e.code==="KeyD") moveRight=true;
+  if(e.code==="Space") shoot();
+});
+document.addEventListener("keyup",(e)=>{
+  if(e.code==="ArrowLeft"||e.code==="KeyA") moveLeft=false;
+  if(e.code==="ArrowRight"||e.code==="KeyD") moveRight=false;
+});
 
 // Shooting
 function shoot(){
